@@ -1,130 +1,277 @@
 # React Native Bluetooth ESC/POS & TSC Printer
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/vardrz/react-native-bluetooth-escpos-printer/master/LICENSE) [![npm version](https://badge.fury.io/js/@vardrz%2Freact-native-bluetooth-escpos-printer.svg)](https://badge.fury.io/js/@vardrz%2Freact-native-bluetooth-escpos-printer)
+React Native module for thermal Bluetooth printers using ESC/POS and TSC command sets.
 
-React Native plugin for Bluetooth ESC/POS & TSC printers.
-
-> 💡 Still under development.  
-> ✅ Currently supports **Android**, **iOS support** planned.
-
-Any questions or bugs? Please open an [issue](https://github.com/vardrz/react-native-bluetooth-escpos-printer/issues).
+> Android only. iOS support is not available.
 
 ---
 
-## 🧩 Acknowledgments
+## Table of Contents
 
-This project is a continuation of the excellent work started by [**Janus J K Lu**](https://github.com/januslo/react-native-bluetooth-escpos-printer) and later improved by [**Ccdilan**](https://github.com/ccdilan/react-native-bluetooth-escpos-printer).
-This fork by [**Farid Fatkhurrozak (Vardrz)**](https://github.com/vardrz/react-native-bluetooth-escpos-printer) builds upon Ccdilan’s version — adding **TypeScript support**, **minor native fixes**, and **extra print options**.
-
-Special thanks to both Janus and Ccdilan — their contributions laid the foundation  
-for this version to exist and continue evolving.
+- [Installation](#installation)
+- [Setup](#setup)
+- [BluetoothManager](#bluetoothmanager)
+- [BluetoothEscposPrinter](#bluetoothescposprinter)
+- [BluetoothTscPrinter](#bluetoothtscprinter)
+- [Full Receipt Example](#full-receipt-example)
+- [Acknowledgments](#acknowledgments)
 
 ---
 
-## 📦 Installation
+## Installation
 
-**Install via NPM:**
 ```bash
 npm install @vardrz/react-native-bluetooth-escpos-printer --save
 ```
 
-**Or install via GitHub:**
+Or directly from GitHub:
+
 ```bash
 npm install https://github.com/vardrz/react-native-bluetooth-escpos-printer.git --save
 ```
 
+React Native 0.60+ handles autolinking automatically. Just rebuild:
+
+```bash
+npx react-native run-android
+```
+
 ---
 
-## 🚀 Usage
+## Setup
 
-### Import module
 ```js
 import {
   BluetoothManager,
   BluetoothEscposPrinter,
-  BluetoothTscPrinter
-} from '@vardrz/react-native-bluetooth-escpos-printer';
+  BluetoothTscPrinter,
+} from "@vardrz/react-native-bluetooth-escpos-printer";
 ```
 
 ---
 
-## 🔧 BluetoothManager
+## BluetoothManager
 
-Manages Bluetooth service: status check, enable/disable, scan, connect/unpair.
+Manages Bluetooth connectivity: enable/disable, scan, connect, disconnect, and device status.
 
-### ✅ isBluetoothEnabled
-Check whether Bluetooth is enabled.
+### isBluetoothEnabled
+
 ```js
-BluetoothManager.isBluetoothEnabled().then(enabled => {
-  alert(enabled); // true / false
-}, err => alert(err));
+const enabled = await BluetoothManager.isBluetoothEnabled();
+// true or false
 ```
 
-### ✅ enableBluetooth *(Android only)*
-Enable Bluetooth service and return paired devices.
+### enableBluetooth
+
+Enables Bluetooth and returns a list of already paired devices.
+
 ```js
-BluetoothManager.enableBluetooth().then(r => {
-  const paired = r.map(item => JSON.parse(item));
-  console.log('Paired devices:', paired);
+const paired = await BluetoothManager.enableBluetooth();
+const devices = paired.map((item) => JSON.parse(item));
+```
+
+### disableBluetooth
+
+```js
+await BluetoothManager.disableBluetooth();
+```
+
+### scanDevices
+
+Scans for nearby Bluetooth devices. Returns paired and found devices.
+
+```js
+const result = JSON.parse(await BluetoothManager.scanDevices());
+console.log(result.paired); // already paired
+console.log(result.found);  // discovered nearby
+```
+
+### connect
+
+```js
+await BluetoothManager.connect("AA:BB:CC:DD:EE:FF");
+```
+
+### disconnect
+
+```js
+await BluetoothManager.disconnect("AA:BB:CC:DD:EE:FF");
+```
+
+### unpaire
+
+Removes pairing with a device.
+
+```js
+await BluetoothManager.unpaire("AA:BB:CC:DD:EE:FF");
+```
+
+### isDeviceConnected
+
+```js
+const connected = await BluetoothManager.isDeviceConnected();
+// true or false
+```
+
+### getConnectedDevice
+
+Returns the currently connected device or `null`.
+
+```js
+const device = await BluetoothManager.getConnectedDevice();
+// { name: "Printer", address: "AA:BB:CC:DD:EE:FF" } or null
+```
+
+### getConnectedDeviceAddress
+
+Returns only the address of the connected device.
+
+```js
+const address = await BluetoothManager.getConnectedDeviceAddress();
+```
+
+### Events
+
+Listen for Bluetooth events using `DeviceEventEmitter`:
+
+```js
+import { DeviceEventEmitter } from "react-native";
+
+DeviceEventEmitter.addListener(BluetoothManager.EVENT_CONNECTED, (data) => {
+  console.log("Connected to:", data.device_name);
 });
 ```
 
-### ✅ disableBluetooth *(Android only)*
-Disable Bluetooth service.
-```js
-BluetoothManager.disableBluetooth().then(() => {
-  console.log('Bluetooth disabled');
-});
-```
-
-### ✅ scanDevices
-Scans nearby devices and returns paired/found results.
-```js
-BluetoothManager.scanDevices().then(s => {
-  const result = JSON.parse(s);
-  console.log(result.paired, result.found);
-});
-```
-
-### ✅ connect / unpair
-```js
-BluetoothManager.connect(device.address)
-  .then(() => console.log('Connected!'))
-  .catch(e => alert(e));
-
-BluetoothManager.unpair(device.address)
-  .then(() => console.log('Unpaired'))
-  .catch(e => alert(e));
-```
-
-### 📡 Events
-
-| Event Key | Description |
-|------------|--------------|
-| `EVENT_DEVICE_ALREADY_PAIRED` | Emits paired devices array |
-| `EVENT_DEVICE_DISCOVER_DONE` | Emits when scanning completes |
-| `EVENT_DEVICE_FOUND` | Emits when new device found |
-| `EVENT_CONNECTION_LOST` | Emits when connection lost |
-| `EVENT_UNABLE_CONNECT` | Emits when connection fails |
-| `EVENT_CONNECTED` | Emits when connected |
-| `EVENT_BLUETOOTH_NOT_SUPPORT` | Device does not support BT (Android only) |
+| Event                         | Description                       |
+| ----------------------------- | --------------------------------- |
+| `EVENT_DEVICE_ALREADY_PAIRED` | Paired devices list               |
+| `EVENT_DEVICE_FOUND`          | New device discovered             |
+| `EVENT_DEVICE_DISCOVER_DONE`  | Scan completed                    |
+| `EVENT_CONNECTED`             | Device connected                  |
+| `EVENT_CONNECTION_LOST`       | Connection lost                   |
+| `EVENT_UNABLE_CONNECT`        | Connection failed                 |
+| `EVENT_BLUETOOTH_NOT_SUPPORT` | Bluetooth not supported on device |
 
 ---
 
-## 🖨️ BluetoothTscPrinter (Label Printer)
+## BluetoothEscposPrinter
 
-Used for **label** printing.
+For receipt/thermal printers using ESC/POS commands.
 
-### ✅ printLabel(options)
+### printerInit
+
+Initializes the printer. Call before printing.
+
 ```js
-BluetoothTscPrinter.printLabel(options)
-  .then(() => console.log('Label printed'))
-  .catch(err => console.error(err));
+await BluetoothEscposPrinter.printerInit();
 ```
 
-#### Example Options
+### printerAlign
+
+Sets text alignment.
+
 ```js
-const options = {
+await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
+```
+
+### printText(text, options)
+
+```js
+await BluetoothEscposPrinter.printText("Hello World\n", {
+  encoding: "GBK",
+  widthtimes: 1,
+  heigthtimes: 1,
+  fonttype: 0,
+});
+```
+
+### printColumn(widths, aligns, texts, options)
+
+Prints text in a table-style column layout.
+
+```js
+await BluetoothEscposPrinter.printColumn(
+  [12, 6, 6, 8],
+  [
+    BluetoothEscposPrinter.ALIGN.LEFT,
+    BluetoothEscposPrinter.ALIGN.CENTER,
+    BluetoothEscposPrinter.ALIGN.CENTER,
+    BluetoothEscposPrinter.ALIGN.RIGHT,
+  ],
+  ["Item", "Qty", "Price", "Total"],
+  {},
+);
+```
+
+### printPic(base64, options)
+
+Prints an image from a base64-encoded string.
+
+| Option      | Type   | Description                           |
+| ----------- | ------ | ------------------------------------- |
+| `width`     | number | Image width in dots                   |
+| `left`      | number | Left padding (ignored if `center`)    |
+| `center`    | bool   | Center the image horizontally         |
+| `autoCut`   | bool   | Auto-cut after printing (default `true`) |
+| `paperSize` | number | Paper width in mm (58 or 80)          |
+
+```js
+await BluetoothEscposPrinter.printPic(base64Image, {
+  width: 384,
+  center: true,
+  paperSize: 80,
+  autoCut: false,
+});
+```
+
+### printQRCode(content, size, correctionLevel)
+
+```js
+await BluetoothEscposPrinter.printQRCode("https://example.com", 200, 1);
+```
+
+### printBarCode(str, type, width, height, fontType, fontPosition)
+
+```js
+await BluetoothEscposPrinter.printBarCode(
+  "1234567890",
+  BluetoothEscposPrinter.BARCODETYPE.CODE128,
+  3, 120, 0, 2,
+);
+```
+
+### openDrawer
+
+Opens a cash drawer connected to the printer.
+
+```js
+BluetoothEscposPrinter.openDrawer(0, 250, 250);
+```
+
+### Constants
+
+```js
+BluetoothEscposPrinter.ALIGN       // { LEFT: 0, CENTER: 1, RIGHT: 2 }
+BluetoothEscposPrinter.ROTATION    // { OFF: 0, ON: 1 }
+
+BluetoothEscposPrinter.BARCODETYPE
+// { UPC_A: 65, UPC_E: 66, JAN13: 67, JAN8: 68,
+//   CODE39: 69, ITF: 70, CODABAR: 71, CODE93: 72, CODE128: 73 }
+
+BluetoothEscposPrinter.ERROR_CORRECTION
+// { L: 1, M: 0, Q: 3, H: 2 }
+```
+
+---
+
+## BluetoothTscPrinter
+
+For label printers using TSC commands.
+
+### printLabel(options)
+
+```js
+await BluetoothTscPrinter.printLabel({
   width: 40,
   height: 30,
   gap: 20,
@@ -134,113 +281,123 @@ const options = {
   sound: 0,
   text: [
     {
-      text: 'Sample Text',
-      x: 20, y: 0,
+      text: "Sample Text",
+      x: 20,
+      y: 0,
       fonttype: BluetoothTscPrinter.FONTTYPE.SIMPLIFIED_CHINESE,
       rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
       xscal: BluetoothTscPrinter.FONTMUL.MUL_1,
-      yscal: BluetoothTscPrinter.FONTMUL.MUL_1
-    }
+      yscal: BluetoothTscPrinter.FONTMUL.MUL_1,
+    },
   ],
   qrcode: [
-    { x: 20, y: 96, level: BluetoothTscPrinter.EEC.LEVEL_L, width: 3, code: 'show me the money' }
+    {
+      x: 20,
+      y: 96,
+      level: BluetoothTscPrinter.EEC.LEVEL_L,
+      width: 3,
+      code: "https://example.com",
+    },
   ],
   barcode: [
-    { x: 120, y: 96, type: BluetoothTscPrinter.BARCODETYPE.CODE128, height: 40, readable: 1, code: '1234567890' }
+    {
+      x: 120,
+      y: 96,
+      type: BluetoothTscPrinter.BARCODETYPE.CODE128,
+      height: 40,
+      readable: 1,
+      code: "1234567890",
+    },
   ],
   image: [
-    { x: 160, y: 160, mode: BluetoothTscPrinter.BITMAP_MODE.OVERWRITE, width: 60, image: base64Image }
-  ]
-};
+    {
+      x: 160,
+      y: 160,
+      mode: BluetoothTscPrinter.BITMAP_MODE.OVERWRITE,
+      width: 60,
+      image: base64Image,
+    },
+  ],
+});
+```
+
+### Constants
+
+```js
+BluetoothTscPrinter.DIRECTION    // { FORWARD: 0, BACKWARD: 1 }
+BluetoothTscPrinter.DENSITY      // { DNESITY0..DNESITY15 }
+BluetoothTscPrinter.ROTATION     // { ROTATION_0, ROTATION_90, ROTATION_180, ROTATION_270 }
+BluetoothTscPrinter.FONTMUL      // { MUL_1..MUL_10 }
+BluetoothTscPrinter.BITMAP_MODE  // { OVERWRITE: 0, OR: 1, XOR: 2 }
+BluetoothTscPrinter.TEAR         // { ON: "ON", OFF: "OFF" }
+BluetoothTscPrinter.EEC          // { LEVEL_L, LEVEL_M, LEVEL_Q, LEVEL_H }
+
+BluetoothTscPrinter.BARCODETYPE
+// { CODE128, CODE128M, EAN128, CODE39, CODE93, EAN13, EAN8, CODABAR, ... }
+
+BluetoothTscPrinter.FONTTYPE
+// { FONT_1..FONT_8, SIMPLIFIED_CHINESE, TRADITIONAL_CHINESE, KOREAN }
 ```
 
 ---
 
-## 🧾 BluetoothEscposPrinter (Receipt Printer)
+## Full Receipt Example
 
-Follows ESC/POS command set for text & image printing.
-
-### ✅ printerInit
-Initialize printer.
-
-### ✅ printText(text, options)
-Prints text with options:
 ```js
-BluetoothEscposPrinter.printText("Hello World\n", {
-  encoding: 'GBK',
-  widthtimes: 1,
-  heigthtimes: 1,
-  fonttype: 0,
-  cut: true
-});
-```
-
-### ✅ printPic(base64, options)
-Prints image (base64 encoded).
-
-**Options:**
-
-| Key | Type | Description |
-|-----|------|--------------|
-| `width` | int | Target width (dots) |
-| `left` | int | Left padding (ignored if `center` true) |
-| `center` | bool | Center horizontally |
-| `autoCut` | bool | Auto-cut after print (default `true`) |
-| `paperSize` | int | Paper width (58 / 80 mm) |
-
-**Example:**
-```js
-BluetoothEscposPrinter.printPic(base64Image, {
-  width: 384,
-  center: true,
-  paperSize: 80,
-  autoCut: false
-});
-```
-
-### ✅ printColumn
-Print columns (table-style layout).
-```js
-await BluetoothEscposPrinter.printColumn(
-  [12, 6, 6, 8],
-  [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.CENTER, BluetoothEscposPrinter.ALIGN.CENTER, BluetoothEscposPrinter.ALIGN.RIGHT],
-  ['Item', 'Qty', 'Price', 'Total'],
-  {}
-);
-```
-
----
-
-### 🧾 Full Example: Print a Receipt
-```js
+await BluetoothEscposPrinter.printerInit();
 await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
-await BluetoothEscposPrinter.printText("My Store\n\r", { widthtimes: 3, heigthtimes: 3 });
+await BluetoothEscposPrinter.printText("My Store\n\r", {
+  widthtimes: 3,
+  heigthtimes: 3,
+});
 await BluetoothEscposPrinter.printText("Sales Receipt\n\r", {});
 await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.LEFT);
 await BluetoothEscposPrinter.printText("Customer: Retail\n\r", {});
 await BluetoothEscposPrinter.printText("Invoice: INV20251014\n\r", {});
 await BluetoothEscposPrinter.printText("--------------------------------\n\r", {});
-let columnWidths = [12, 6, 6, 8];
-await BluetoothEscposPrinter.printColumn(columnWidths,
+
+await BluetoothEscposPrinter.printColumn(
+  [12, 6, 6, 8],
   [0, 1, 1, 2],
-  ['Product', 'Qty', 'Price', 'Total'],
-  {}
+  ["Product", "Qty", "Price", "Total"],
+  {},
 );
+
+await BluetoothEscposPrinter.printColumn(
+  [12, 6, 6, 8],
+  [0, 1, 1, 2],
+  ["Widget A", "2", "$12.00", "$24.00"],
+  {},
+);
+
+await BluetoothEscposPrinter.printColumn(
+  [12, 6, 6, 8],
+  [0, 1, 1, 2],
+  ["Widget B", "4", "$10.00", "$40.00"],
+  {},
+);
+
 await BluetoothEscposPrinter.printText("--------------------------------\n\r", {});
+await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.RIGHT);
 await BluetoothEscposPrinter.printText("Total: $64.00\n\r", {});
-await BluetoothEscposPrinter.printText("Thank you!\n\r\n\r", {});
+await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
+await BluetoothEscposPrinter.printText("\n\rThank you!\n\r\n\r", {});
 ```
 
 ---
 
-### 💡 Open Drawer
-```js
-BluetoothEscposPrinter.openDrawer(0, 250, 250);
-```
+## Acknowledgments
+
+This project builds upon the work of:
+
+- [Janus J K Lu](https://github.com/januslo/react-native-bluetooth-escpos-printer) — original creator
+- [Ccdilan](https://github.com/ccdilan/react-native-bluetooth-escpos-printer) — fork maintainer
+- [Farid Fatkhurrozak (Vardrz)](https://github.com/vardrz/react-native-bluetooth-escpos-printer) — custom fork
+
+This fork by [Mateus Degobi](https://github.com/mateusdegobi/react-native-bluetooth-escpos-printer) adds TypeScript support, native fixes, and additional features.
 
 ---
 
-## 🔗 References
-- [Original repo – januslo/react-native-bluetooth-escpos-printer](https://github.com/januslo/react-native-bluetooth-escpos-printer)
-- [Ccdilan fork – @ccdilan/react-native-bluetooth-escpos-printer](https://github.com/ccdilan/react-native-bluetooth-escpos-printer)
-- [This fork – @vardrz/react-native-bluetooth-escpos-printer](https://github.com/vardrz/react-native-bluetooth-escpos-printer)
+## License
+
+MIT
