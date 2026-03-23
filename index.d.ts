@@ -19,7 +19,19 @@ export interface BluetoothManagerType {
   scanDevices(): Promise<{ paired: BluetoothDevice[]; found: BluetoothDevice[] }>;
   connect(address: string): Promise<void>;
   disconnect(address: string): Promise<void>;
+  unpaire(address: string): Promise<string>;
+  isDeviceConnected(): Promise<boolean>;
+  getConnectedDeviceAddress(): Promise<string | null>;
   getConnectedDevice(): Promise<BluetoothDevice | null>;
+
+  EVENT_DEVICE_ALREADY_PAIRED: string;
+  EVENT_DEVICE_FOUND: string;
+  EVENT_DEVICE_DISCOVER_DONE: string;
+  EVENT_CONNECTION_LOST: string;
+  EVENT_UNABLE_CONNECT: string;
+  EVENT_CONNECTED: string;
+  EVENT_BLUETOOTH_NOT_SUPPORT: string;
+  DEVICE_NAME: string;
 }
 
 export interface BluetoothEscposPrinterType {

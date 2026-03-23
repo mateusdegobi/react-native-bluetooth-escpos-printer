@@ -299,6 +299,24 @@ public class RNBluetoothManagerModule extends ReactContextBaseJavaModule
 
     }
 
+    /* Return the name and address of the currently connected device */
+    @ReactMethod
+    public void getConnectedDevice(final Promise promise) {
+        if (mService != null && mService.getState() == BluetoothService.STATE_CONNECTED) {
+            String address = mService.getLastConnectedDeviceAddress();
+            if (address != null) {
+                WritableMap device = Arguments.createMap();
+                device.putString("name", mConnectedDeviceName);
+                device.putString("address", address);
+                promise.resolve(device);
+            } else {
+                promise.resolve(null);
+            }
+        } else {
+            promise.resolve(null);
+        }
+    }
+
 
 
         private void unpairDevice(BluetoothDevice device) {
