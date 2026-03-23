@@ -21,13 +21,13 @@ React Native module for thermal Bluetooth printers using ESC/POS and TSC command
 ## Installation
 
 ```bash
-npm install @vardrz/react-native-bluetooth-escpos-printer --save
+npm install @mateusdegobi/react-native-bluetooth-escpos-printer --save
 ```
 
 Or directly from GitHub:
 
 ```bash
-npm install https://github.com/vardrz/react-native-bluetooth-escpos-printer.git --save
+npm install https://github.com/mateusdegobi/react-native-bluetooth-escpos-printer.git --save
 ```
 
 React Native 0.60+ handles autolinking automatically. Just rebuild:
@@ -45,7 +45,7 @@ import {
   BluetoothManager,
   BluetoothEscposPrinter,
   BluetoothTscPrinter,
-} from "@vardrz/react-native-bluetooth-escpos-printer";
+} from "@mateusdegobi/react-native-bluetooth-escpos-printer";
 ```
 
 ---
