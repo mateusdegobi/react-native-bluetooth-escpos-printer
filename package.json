@@ -1,6 +1,6 @@
 {
-  "name": "@vardrz/react-native-bluetooth-escpos-printer",
-  "version": "0.1.2",
+  "name": "@mateusdegobi/react-native-bluetooth-escpos-printer",
+  "version": "1.0.1",
   "description": "Forked react-native-bluetooth-escpos-printer with additional print improvements and TypeScript support.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -14,17 +14,21 @@
     "ESC",
     "POS",
     "Bluetooth",
-    "Printer"
+    "Printer",
+    "Expo",
+    "Architecture",
+    "new-architecture"
   ],
   "author": "Janus J K Lu",
   "maintainers": [
     {
-      "name": "Farid Fatkhurrozak",
-      "email": "fatkhurrozakf@gmail.com",
-      "url": "https://github.com/vardrz"
+      "name": "Mateus Degobi",
+      "email": "devmateusdegobi@gmail.com",
+      "url": "https://github.com/mateusdegobi"
     }
   ],
   "contributors": [
+    "Mateus Degobi (Maintainer, https://github.com/mateusdegobi/)",
     "Janus J K Lu (Original Creator, https://github.com/januslo/react-native-bluetooth-escpos-printer)",
     "Ccdilan (Fork Maintainer, https://github.com/ccdilan)",
     "Farid Fatkhurrozak (Custom Fork, https://github.com/vardrz/react-native-bluetooth-escpos-printer)"
@@ -35,7 +39,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vardrz/react-native-bluetooth-escpos-printer.git"
+    "url": "git+https://github.com/mateusdegobi/react-native-bluetooth-escpos-printer.git"
   },
-  "homepage": "https://github.com/vardrz/react-native-bluetooth-escpos-printer#readme"
+  "homepage": "https://github.com/mateusdegobi/react-native-bluetooth-escpos-printer#readme"
 }
